@@ -7,6 +7,7 @@ from .calendar_manager import EventCalendar
 from .task_manager import TaskManager
 from .gamification import GamificationManager
 from .minigames import MiniGame
+from .system_monitor import SystemMonitor
 
 main_bp = Blueprint("main", __name__)
 
@@ -15,6 +16,7 @@ event_calendar = EventCalendar()
 task_manager = TaskManager()
 game_manager = GamificationManager()
 mini_game = MiniGame()
+system_monitor = SystemMonitor()
 
 # Pre-populate sample events and tasks
 event_calendar.add_event("2026-04-11", "Team Meeting")
@@ -242,3 +244,61 @@ def math_game():
     context["math"] = mini_game.quick_math()
 
     return render_template("math_game.html", **context)
+
+
+@main_bp.route("/system", methods=["GET"])
+def system_monitor_page():
+    """Display system performance monitoring."""
+    context = _template_context()
+    context["title"] = "System Monitor"
+    
+    system_info = system_monitor.get_all_info()
+    context["system_info"] = system_info["system"]
+    context["cpu_info"] = system_info["cpu"]
+    context["memory_info"] = system_info["memory"]
+    context["disk_info"] = system_info["disk"]
+    context["network_info"] = system_info["network"]
+    context["network_io"] = system_info["network_io"]
+    context["battery_info"] = system_info["battery"]
+    context["boot_time"] = system_info["boot_time"]
+    context["processes"] = system_info["processes"]
+    context["format_bytes"] = system_monitor.format_bytes
+    
+    return render_template("system_monitor.html", **context)
+
+
+@main_bp.route("/api/v1/system/info", methods=["GET"])
+def api_system_info():
+    """API endpoint for system information."""
+    return jsonify(system_monitor.get_all_info())
+
+
+@main_bp.route("/api/v1/system/cpu", methods=["GET"])
+def api_cpu_info():
+    """API endpoint for CPU information."""
+    return jsonify(system_monitor.get_cpu_info())
+
+
+@main_bp.route("/api/v1/system/memory", methods=["GET"])
+def api_memory_info():
+    """API endpoint for memory information."""
+    return jsonify(system_monitor.get_memory_info())
+
+
+@main_bp.route("/api/v1/system/disk", methods=["GET"])
+def api_disk_info():
+    """API endpoint for disk information."""
+    return jsonify(system_monitor.get_disk_info())
+
+
+@main_bp.route("/api/v1/system/battery", methods=["GET"])
+def api_battery_info():
+    """API endpoint for battery information."""
+    return jsonify(system_monitor.get_battery_info())
+
+
+@main_bp.route("/api/v1/system/network", methods=["GET"])
+def api_network_info():
+    """API endpoint for network information."""
+    network_data = system_monitor.get_network_info()
+    return jsonify(network_data)

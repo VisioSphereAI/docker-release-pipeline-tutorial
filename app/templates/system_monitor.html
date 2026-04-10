@@ -1,0 +1,451 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-12">
+    <h1 class="mb-4">💻 System Monitor & Performance</h1>
+
+    <!-- Quick Stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+          <div class="card-body">
+            <h6 class="card-title">CPU Usage</h6>
+            <h3>{{ "%.1f"|format(cpu_info.total_usage) }}%</h3>
+            <small>{{ cpu_info.logical_cores }} cores</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+          <div class="card-body">
+            <h6 class="card-title">Memory</h6>
+            <h3>{{ "%.1f"|format(memory_info.percent) }}%</h3>
+            <small>{{ format_bytes(memory_info.used) }} / {{ format_bytes(memory_info.total) }}</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center bg-warning text-dark">
+          <div class="card-body">
+            <h6 class="card-title">Uptime</h6>
+            <h3>{{ boot_time.uptime_formatted }}</h3>
+            <small>System Running</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center {% if battery_info.has_battery %}bg-success{% else %}bg-secondary{% endif %} text-white">
+          <div class="card-body">
+            <h6 class="card-title">Battery</h6>
+            {% if battery_info.has_battery %}
+              <h3>{{ battery_info.percent }}%</h3>
+              <small>{{ "Plugged" if battery_info.power_plugged else battery_info.time_left }}</small>
+            {% else %}
+              <h3>N/A</h3>
+              <small>No Battery Detected</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="card mb-4">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">🖥️ System Information</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>OS:</strong></td>
+                <td>{{ system_info.system }} {{ system_info.release }}</td>
+              </tr>
+              <tr>
+                <td><strong>Hostname:</strong></td>
+                <td>{{ system_info.node_name }}</td>
+              </tr>
+              <tr>
+                <td><strong>Machine:</strong></td>
+                <td>{{ system_info.machine }}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Processor:</strong></td>
+                <td>{{ system_info.processor }}</td>
+              </tr>
+              <tr>
+                <td><strong>Python Version:</strong></td>
+                <td>{{ system_info.python_version }}</td>
+              </tr>
+              <tr>
+                <td><strong>Boot Time:</strong></td>
+                <td>{{ boot_time.boot_time }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CPU Details -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">📊 CPU Details</h5>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <h6>Overall CPU Usage</h6>
+            <div class="progress" style="height: 25px;">
+              <div class="progress-bar" style="width: {{ cpu_info.total_usage }}%">
+                {{ "%.1f"|format(cpu_info.total_usage) }}%
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Physical Cores:</strong></td>
+                <td>{{ cpu_info.physical_cores }}</td>
+              </tr>
+              <tr>
+                <td><strong>Logical Cores:</strong></td>
+                <td>{{ cpu_info.logical_cores }}</td>
+              </tr>
+              <tr>
+                <td><strong>Max Frequency:</strong></td>
+                <td>{{ "%.0f"|format(cpu_info.max_frequency) }} MHz</td>
+              </tr>
+              <tr>
+                <td><strong>Current Frequency:</strong></td>
+                <td>{{ "%.0f"|format(cpu_info.current_frequency) }} MHz</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Per-Core Usage -->
+        {% if cpu_info.usage_per_core %}
+        <div class="mt-3">
+          <h6>Per-Core CPU Usage</h6>
+          <div class="row">
+            {% for usage in cpu_info.usage_per_core %}
+            <div class="col-md-6 col-lg-3 mb-2">
+              <small>Core {{ loop.index0 }}</small>
+              <div class="progress" style="height: 20px;">
+                <div class="progress-bar bg-success" style="width: {{ usage }}%">
+                  {{ "%.0f"|format(usage) }}%
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Memory Details -->
+    <div class="card mb-4">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0">🧠 Memory Details</h5>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <h6>RAM Usage</h6>
+            <div class="progress" style="height: 25px;">
+              <div class="progress-bar" style="width: {{ memory_info.percent }}%">
+                {{ "%.1f"|format(memory_info.percent) }}%
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Total RAM:</strong></td>
+                <td>{{ format_bytes(memory_info.total) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Used:</strong></td>
+                <td>{{ format_bytes(memory_info.used) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Available:</strong></td>
+                <td>{{ format_bytes(memory_info.available) }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Swap Memory</h6>
+            <div class="progress" style="height: 25px;">
+              <div class="progress-bar bg-warning" style="width: {{ memory_info.swap_percent }}%">
+                {{ "%.1f"|format(memory_info.swap_percent) }}%
+              </div>
+            </div>
+            <small class="text-muted">{{ format_bytes(memory_info.swap_used) }} / {{ format_bytes(memory_info.swap_total) }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Disk Info -->
+    <div class="card mb-4">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">💾 Disk Storage</h5>
+      </div>
+      <div class="card-body">
+        {% if disk_info and disk_info is not mapping %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Device</th>
+                <th>Mount Point</th>
+                <th>Type</th>
+                <th>Total</th>
+                <th>Used</th>
+                <th>Free</th>
+                <th>Usage %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for disk in disk_info %}
+              <tr>
+                <td><code>{{ disk.device }}</code></td>
+                <td>{{ disk.mount_point }}</td>
+                <td>{{ disk.fstype }}</td>
+                <td>{{ format_bytes(disk.total) }}</td>
+                <td>{{ format_bytes(disk.used) }}</td>
+                <td>{{ format_bytes(disk.free) }}</td>
+                <td>
+                  <div class="progress" style="height: 20px;">
+                    <div class="progress-bar {% if disk.percent > 80 %}bg-danger{% elif disk.percent > 60 %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ disk.percent }}%">
+                      {{ "%.1f"|format(disk.percent) }}%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Network Information -->
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">🌐 Network Information</h5>
+      </div>
+      <div class="card-body">
+        {% if network_io and network_io is not mapping %}
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Bytes Sent:</strong></td>
+                <td>{{ format_bytes(network_io.bytes_sent) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Bytes Received:</strong></td>
+                <td>{{ format_bytes(network_io.bytes_recv) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Packets Sent:</strong></td>
+                <td>{{ "{:,}".format(network_io.packets_sent) }}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Packets Received:</strong></td>
+                <td>{{ "{:,}".format(network_io.packets_recv) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Errors In:</strong></td>
+                <td>{{ network_io.errin }}</td>
+              </tr>
+              <tr>
+                <td><strong>Errors Out:</strong></td>
+                <td>{{ network_io.errout }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Network Interfaces -->
+        <h6>Network Interfaces</h6>
+        {% if network_info and network_info is not mapping %}
+        <div class="row g-2">
+          {% for interface_name, interface_data in network_info.items() %}
+          <div class="col-md-6">
+            <div class="card bg-light">
+              <div class="card-body">
+                <h6 class="card-title"><code>{{ interface_name }}</code></h6>
+                {% if interface_data.stats %}
+                <small class="text-muted">
+                  Status: {% if interface_data.stats.is_up %}🟢 Up{% else %}🔴 Down{% endif %} |
+                  Speed: {{ interface_data.stats.speed }} Mbps
+                </small>
+                {% endif %}
+                <ul class="list-unstyled small mt-2">
+                  {% for addr in interface_data.addresses %}
+                  <li><code>{{ addr.address }}</code></li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Battery Information -->
+    {% if battery_info.has_battery %}
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">🔋 Battery Information</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Battery Level</h6>
+            <div class="progress" style="height: 30px;">
+              <div class="progress-bar {% if battery_info.percent > 50 %}bg-success{% elif battery_info.percent > 20 %}bg-warning{% else %}bg-danger{% endif %}" style="width: {{ battery_info.percent }}%">
+                {{ battery_info.percent }}%
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Status:</strong></td>
+                <td>{% if battery_info.power_plugged %}🔌 Plugged In{% else %}🔋 On Battery{% endif %}</td>
+              </tr>
+              <tr>
+                <td><strong>Time Left:</strong></td>
+                <td>{{ battery_info.time_left }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Processes -->
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">⚡ Top CPU Processes</h5>
+          </div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm table-hover">
+              <thead>
+                <tr>
+                  <th>PID</th>
+                  <th>Name</th>
+                  <th>CPU %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for proc in processes.top_cpu %}
+                <tr>
+                  <td>{{ proc.pid }}</td>
+                  <td><small>{{ proc.name }}</small></td>
+                  <td>
+                    <div class="progress" style="height: 15px;">
+                      <div class="progress-bar bg-danger" style="width: {{ proc.cpu_percent }}%">
+                        {{ "%.1f"|format(proc.cpu_percent) }}%
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">🧠 Top Memory Processes</h5>
+          </div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm table-hover">
+              <thead>
+                <tr>
+                  <th>PID</th>
+                  <th>Name</th>
+                  <th>Memory %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for proc in processes.top_memory %}
+                <tr>
+                  <td>{{ proc.pid }}</td>
+                  <td><small>{{ proc.name }}</small></td>
+                  <td>
+                    <div class="progress" style="height: 15px;">
+                      <div class="progress-bar" style="width: {{ proc.memory_percent }}%; background-color: #6f42c1;">
+                        {{ "%.1f"|format(proc.memory_percent) }}%
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Processes -->
+    <div class="alert alert-info mt-4">
+      <h6>📈 System Summary</h6>
+      <p class="mb-0"><strong>Total Running Processes:</strong> {{ processes.total_processes }}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .progress {
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .table-responsive {
+    border-radius: 4px;
+  }
+
+  code {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+</style>
+{% endblock %}
