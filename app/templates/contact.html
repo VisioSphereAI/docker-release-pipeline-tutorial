@@ -1,12 +1,70 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-  <h2>Contact</h2>
-  <p>If you want to extend this sample application, reach out to your team and add your own authentication, database, and deployment workflows.</p>
-  <p>Suggested next steps:</p>
-  <ol>
-    <li>Add a database layer with SQLAlchemy.</li>
-    <li>Add forms and validation with Flask-WTF.</li>
-    <li>Use a frontend framework for richer UI interactions.</li>
-  </ol>
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <h1 class="mb-4">Get In Touch 📧</h1>
+
+    <div class="card mb-4">
+      <div class="card-body text-center">
+        <p class="lead">Thank you for using this Flask Docker sample application!</p>
+        <p>This project serves as a reference implementation for building scalable, containerized Python web applications.</p>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-6">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">📖 Documentation</h5>
+            <p class="card-text">Visit the docs folder for detailed setup and API documentation.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">🐙 GitHub</h5>
+            <p class="card-text small">docker-release-pipeline-tutorial</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">🚀 Next Steps</h5>
+      </div>
+      <div class="card-body">
+        <ol class="list-group list-group-numbered">
+          <li class="list-group-item">
+            <strong>Extend the Database</strong>
+            <p class="text-muted mt-1 mb-0">Add SQLAlchemy ORM for persistent data storage</p>
+          </li>
+          <li class="list-group-item">
+            <strong>Add Authentication</strong>
+            <p class="text-muted mt-1 mb-0">Integrate Flask-Login for user management</p>
+          </li>
+          <li class="list-group-item">
+            <strong>Deploy to Production</strong>
+            <p class="text-muted mt-1 mb-0">Use Kubernetes or cloud platforms like AWS/GCP</p>
+          </li>
+          <li class="list-group-item">
+            <strong>Add Real-Time Features</strong>
+            <p class="text-muted mt-1 mb-0">Implement WebSockets with Socket.IO</p>
+          </li>
+          <li class="list-group-item">
+            <strong>Improve Observability</strong>
+            <p class="text-muted mt-1 mb-0">Add logging, metrics, and tracing with OpenTelemetry</p>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="alert alert-success mt-4">
+      <h5>✨ Thank you for exploring this project!</h5>
+      <p class="mb-0">Feel free to fork, modify, and build upon this foundation for your own applications.</p>
+    </div>
+  </div>
+</div>
 {% endblock %}

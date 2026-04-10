@@ -1,20 +1,148 @@
-# 🚀 Docker CI/CD Release Pipeline with GitHub Actions
+# 🚀 Flask Docker Application with Interactive Features
 
-## 📌 Overview
+## 🎯 Quick Overview
 
-This repository demonstrates a **production-grade CI/CD pipeline** using:
-- Docker
-- GitHub Actions
-- Artifactory (or any container registry)
-- Multi-branch strategy
+This repository contains an **advanced Flask application** demonstrating production-grade development practices with:
 
-It supports:
-- Feature → Dev → Prod promotion
-- Tag-based releases
-- Automated validation and gating
-- Release creation and notifications
+- **🐳 Docker** containerization with Gunicorn
+- **📅 Interactive Calendar** system
+- **✓ Task Manager** with priority levels
+- **🎨 Bootstrap 5** responsive UI
+- **🧪 Comprehensive Tests** with pytest
+- **🔄 CI/CD Pipeline** with GitHub Actions
+- **📊 Multi-page Application** with Jinja2 templates
 
 ---
+
+## 🚀 Getting Started
+
+### Run Locally
+
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+.venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy environment example
+copy .env.example .env
+
+# Start the Flask server
+set FLASK_APP=app
+flask run
+```
+
+Visit `http://localhost:5000` to see the app.
+
+### Run with Docker
+
+```bash
+# Build and run the image
+docker build -t flask-docker-app .
+docker run -p 5000:5000 flask-docker-app
+```
+
+### Run with Docker Compose
+
+```bash
+# Start the entire stack
+docker compose up --build
+```
+
+---
+
+## 📚 Features
+
+### 🏠 Web Pages
+- **Home** - Overview of features and quick links
+- **📅 Calendar** - Interactive monthly event calendar
+- **✓ Tasks** - Task management with priorities and completion tracking
+- **About** - Project information and technologies
+- **Contact** - Next steps and suggestions
+
+### 🔌 API Endpoints
+- `GET /health/` - Health check endpoint
+- `POST /api/v1/echo` - Echo JSON messages
+
+### 🛠️ Advanced Features
+- **App Factory Pattern** - Flexible application initialization
+- **Configuration Management** - Environment-based settings
+- **Error Handling** - Comprehensive error responses
+- **Request Validation** - Input validation for forms
+- **Form Handling** - Task creation and management
+- **Static Assets** - CSS and JavaScript support
+- **Responsive Design** - Mobile-friendly UI with Bootstrap 5
+
+---
+
+## 🏗️ Project Structure
+
+```
+.
+├── .github/
+│   └── workflows/
+│       └── ci.yml                 # GitHub Actions CI/CD
+├── app/
+│   ├── __init__.py               # App factory
+│   ├── config.py                 # Configuration classes
+│   ├── routes.py                 # Blueprint routes
+│   ├── errors.py                 # Error handlers
+│   ├── extensions.py             # Flask extensions
+│   ├── health.py                 # Health check blueprint
+│   ├── calendar_manager.py       # Calendar logic
+│   ├── task_manager.py           # Task management logic
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── styles.css        # Custom styles
+│   │   └── js/
+│   │       └── app.js            # Frontend JavaScript
+│   └── templates/
+│       ├── layout.html           # Base template
+│       ├── home.html             # Home page
+│       ├── calendar.html         # Calendar page
+│       ├── tasks.html            # Tasks page
+│       ├── about.html            # About page
+│       └── contact.html          # Contact page
+├── tests/
+│   ├── test_api.py              # API tests
+│   └── test_pages.py            # Page tests
+├── docs/
+│   ├── api.md                   # API documentation
+│   ├── overview.md              # Project overview
+│   └── setup.md                 # Setup instructions
+├── scripts/
+│   ├── run.sh                   # Start Flask server
+│   └── test.sh                  # Run tests
+├── Dockerfile                   # Container definition
+├── docker-compose.yml           # Docker Compose config
+├── requirements.txt             # Production dependencies
+├── requirements-dev.txt         # Development dependencies
+├── .env.example                 # Environment template
+└── README.md                    # This file
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Install test dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+```
+
+---
+
+## 🔧 Docker CI/CD Release Pipeline
+
+This project also demonstrates a **production-grade CI/CD pipeline** using:
 
 ## 🧱 Branch Strategy
 
