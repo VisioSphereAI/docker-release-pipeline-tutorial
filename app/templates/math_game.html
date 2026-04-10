@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <h1 class="mb-4 text-center">🧮 Math Challenge</h1>
+
+    <div class="card shadow-lg">
+      <div class="card-body p-5">
+        {% if result %}
+        <div class="alert {% if result == 'correct' %}alert-success{% else %}alert-danger{% endif %} mb-4">
+          <h5>
+            {% if result == 'correct' %}
+            ✅ Correct! You earned 15 points!
+            {% else %}
+            ❌ Incorrect! Try again!
+            {% endif %}
+          </h5>
+        </div>
+        {% endif %}
+
+        <div class="text-center mb-5">
+          <h2 class="display-4">{{ math.problem }}</h2>
+          <p class="text-muted">= ?</p>
+        </div>
+
+        <form method="POST" class="mb-4">
+          <input type="hidden" name="correct_answer" value="{{ math.answer }}" />
+          <div class="input-group input-group-lg">
+            <input type="number" class="form-control" name="answer" placeholder="Enter your answer..." autofocus />
+            <button class="btn btn-primary" type="submit">Submit</button>
+          </div>
+        </form>
+
+        <hr />
+
+        <div class="text-center">
+          <a href="{{ url_for('main.games') }}" class="btn btn-secondary">Back to Arcade</a>
+          <form method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-info">New Problem</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Points Info -->
+    <div class="alert alert-info mt-4" role="alert">
+      <h6 class="alert-heading">🚀 Challenge Info</h6>
+      <ul class="mb-0">
+        <li>Solve math problems as fast as you can</li>
+        <li>Each correct answer gives you 15 points</li>
+        <li>Higher difficulty = more points (future update)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-10 mx-auto">
+    <h1 class="mb-4">👤 Your Profile</h1>
+
+    <!-- User Info & Avatar -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-6">
+        <div class="card text-center">
+          <div class="card-body">
+            <div class="display-1 mb-3">{{ user.avatar }}</div>
+            <h3>{{ user.username }}</h3>
+            <p class="text-muted">Level {{ user.level }} Player</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">📊 Stats</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="text-muted">Total Points</label>
+              <h4 class="text-success">{{ stats.user.points }} pts</h4>
+            </div>
+            <div class="mb-3">
+              <label class="text-muted">Current Level</label>
+              <h4 class="text-info">{{ stats.user.level }}</h4>
+            </div>
+            <div>
+              <label class="text-muted">Badges Earned</label>
+              <h4>{{ stats.user.badges|length }}/{{ stats.total_badges }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Avatar -->
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">✨ Change Avatar</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="action" value="update_avatar" />
+          <div class="row g-2">
+            {% for avatar in avatars %}
+            <div class="col-6 col-md-4 col-lg-2">
+              <button type="submit" name="avatar" value="{{ avatar }}" class="btn w-100 btn-outline-primary btn-lg">{{ avatar }}</button>
+            </div>
+            {% endfor %}
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Update Username -->
+    <div class="card mb-4">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">🎤 Change Username</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="action" value="update_username" />
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" name="username" value="{{ user.username }}" />
+            <button class="btn btn-warning" type="submit">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="card mb-4">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">🏆 Achievement Badges</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          {% for badge in stats.badges_earned %}
+          <div class="col-md-6 col-lg-4">
+            <div class="text-center p-3 bg-light rounded">
+              <div class="display-5 mb-2">{{ badge.icon }}</div>
+              <h6>{{ badge.name }}</h6>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% if stats.badges_earned|length == 0 %}
+        <p class="text-muted text-center">No badges yet. Keep playing to earn some!</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Achievement Progress -->
+    <div class="card">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0">🎯 Progress to Next Badge</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="mb-2">Task Master (10 tasks)</label>
+          <div class="progress">
+            <div class="progress-bar bg-success" style="width: {% if stats.progress.task_master %}{{ stats.progress.task_master * 100 }}%{% else %}0%{% endif %}"></div>
+          </div>
+          <small class="text-muted">{{ stats.user.tasks_completed }}/10</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="mb-2">Calendar Pro (5 events)</label>
+          <div class="progress">
+            <div class="progress-bar bg-info" style="width: {% if stats.progress.calendar_pro %}{{ stats.progress.calendar_pro * 100 }}%{% else %}0%{% endif %}"></div>
+          </div>
+          <small class="text-muted">{{ stats.user.events_created }}/5</small>
+        </div>
+
+        <div>
+          <label class="mb-2">Organizer (500 points)</label>
+          <div class="progress">
+            <div class="progress-bar bg-warning" style="width: {% if stats.progress.organizer %}{{ stats.progress.organizer * 100 }}%{% else %}0%{% endif %}"></div>
+          </div>
+          <small class="text-muted">{{ stats.user.points }}/500</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -11,6 +11,11 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <a class="navbar-brand" href="{{ url_for('main.home') }}">🐳 Flask Docker</a>
+        <span class="navbar-text text-warning ms-2 d-none d-lg-inline">
+          <span class="user-avatar">{{ user.avatar }}</span>
+          <span class="badge bg-success">Lv{{ user.level }}</span>
+          <span class="badge bg-info">{{ user.points }}pts</span>
+        </span>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -26,10 +31,19 @@
               <a class="nav-link {% if title == 'Tasks' %}active{% endif %}" href="{{ url_for('main.tasks') }}">✓ Tasks</a>
             </li>
             <li class="nav-item">
+              <a class="nav-link {% if title == 'Arcade' %}active{% endif %}" href="{{ url_for('main.games') }}">🎮 Games</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if title == 'Profile' %}active{% endif %}" href="{{ url_for('main.profile') }}">👤 Profile</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if title == 'Leaderboard' %}active{% endif %}" href="{{ url_for('main.leaderboard') }}">🏆 Leaderboard</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link {% if title == 'About' %}active{% endif %}" href="{{ url_for('main.about') }}">About</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link {% if title == 'Contact' %}active{% endif %}" href="{{ url_for('main.contact') }}">Contact</a>
+              <button class="nav-link btn btn-link" id="darkModeToggle" title="Toggle dark mode">🌙</button>
             </li>
           </ul>
         </div>

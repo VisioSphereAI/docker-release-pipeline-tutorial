@@ -1,16 +1,20 @@
 from datetime import datetime
 
-from flask import Blueprint, jsonify, request, render_template, current_app, redirect, url_for
+from flask import Blueprint, jsonify, request, render_template, current_app, redirect, url_for, session
 from werkzeug.exceptions import BadRequest
 
 from .calendar_manager import EventCalendar
 from .task_manager import TaskManager
+from .gamification import GamificationManager
+from .minigames import MiniGame
 
 main_bp = Blueprint("main", __name__)
 
 # Initialize managers
 event_calendar = EventCalendar()
 task_manager = TaskManager()
+game_manager = GamificationManager()
+mini_game = MiniGame()
 
 # Pre-populate sample events and tasks
 event_calendar.add_event("2026-04-11", "Team Meeting")
@@ -22,10 +26,22 @@ task_manager.add_task("Write documentation", "Complete API and setup docs", "med
 task_manager.add_task("Add tests", "Increase test coverage", "low")
 
 
+def _get_user_id():
+    """Get or create user ID from session."""
+    if "user_id" not in session:
+        session["user_id"] = f"user_{id(session)}"
+    return session["user_id"]
+
+
 def _template_context():
+    user_id = _get_user_id()
+    user = game_manager.get_or_create_user(user_id)
+
     return {
         "project_name": current_app.config.get("PROJECT_NAME", "Flask Docker Sample"),
         "current_year": datetime.utcnow().year,
+        "user": user,
+        "user_id": user_id,
     }
 
 
@@ -107,7 +123,10 @@ def tasks():
 @main_bp.route("/tasks/<int:task_id>/toggle", methods=["POST"])
 def toggle_task(task_id):
     """Toggle task completion status."""
+    user_id = _get_user_id()
     task = task_manager.get_task(task_id)
+    if task and not task["completed"]:
+        game_manager.increment_task_count(user_id)
     if task:
         task_manager.update_task(task_id, completed=not task["completed"])
 
@@ -119,3 +138,107 @@ def delete_task(task_id):
     """Delete a task."""
     task_manager.delete_task(task_id)
     return redirect(url_for("main.tasks"))
+
+
+@main_bp.route("/profile", methods=["GET", "POST"])
+def profile():
+    """User profile and gamification dashboard."""
+    user_id = _get_user_id()
+
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "update_avatar":
+            avatar = request.form.get("avatar", "🤖")
+            game_manager.set_avatar(user_id, avatar)
+        elif action == "update_username":
+            username = request.form.get("username", f"Player_{user_id}")
+            game_manager.set_username(user_id, username)
+
+        return redirect(url_for("main.profile"))
+
+    context = _template_context()
+    context["title"] = "Profile"
+    context["stats"] = game_manager.get_user_stats(user_id)
+    context["avatars"] = ["🤖", "🚀", "🎮", "🧙", "🦸", "🧛", "🍕", "🌟", "👽", "🎯"]
+
+    return render_template("profile.html", **context)
+
+
+@main_bp.route("/leaderboard", methods=["GET"])
+def leaderboard():
+    """Global leaderboard."""
+    context = _template_context()
+    context["title"] = "Leaderboard"
+    context["leaderboard"] = game_manager.get_leaderboard(20)
+
+    return render_template("leaderboard.html", **context)
+
+
+@main_bp.route("/games", methods=["GET"])
+def games():
+    """Mini-games hub."""
+    context = _template_context()
+    context["title"] = "Arcade"
+
+    return render_template("games.html", **context)
+
+
+@main_bp.route("/games/riddle", methods=["GET", "POST"])
+def riddle_game():
+    """Play riddle game."""
+    user_id = _get_user_id()
+
+    if request.method == "POST":
+        answer = request.form.get("answer", "").strip().lower()
+        riddle_answer = request.form.get("riddle_answer", "").strip().lower()
+
+        if answer == riddle_answer:
+            game_manager.add_points(user_id, 25, "riddle_solved")
+            correct = True
+        else:
+            correct = False
+
+        context = _template_context()
+        context["title"] = "Riddle"
+        context["riddle"] = mini_game.riddle()
+        context["result"] = "correct" if correct else "incorrect"
+
+        return render_template("riddle_game.html", **context)
+
+    context = _template_context()
+    context["title"] = "Riddle"
+    context["riddle"] = mini_game.riddle()
+
+    return render_template("riddle_game.html", **context)
+
+
+@main_bp.route("/games/math", methods=["GET", "POST"])
+def math_game():
+    """Quick math challenge."""
+    user_id = _get_user_id()
+
+    if request.method == "POST":
+        user_answer = request.form.get("answer", "").strip()
+        correct_answer = request.form.get("correct_answer", "0")
+
+        try:
+            if int(user_answer) == int(correct_answer):
+                game_manager.add_points(user_id, 15, "math_solved")
+                correct = True
+            else:
+                correct = False
+        except ValueError:
+            correct = False
+
+        context = _template_context()
+        context["title"] = "Math Challenge"
+        context["math"] = mini_game.quick_math()
+        context["result"] = "correct" if correct else "incorrect"
+
+        return render_template("math_game.html", **context)
+
+    context = _template_context()
+    context["title"] = "Math Challenge"
+    context["math"] = mini_game.quick_math()
+
+    return render_template("math_game.html", **context)
