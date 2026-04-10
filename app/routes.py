@@ -12,8 +12,8 @@ from .system_monitor import SystemMonitor
 main_bp = Blueprint("main", __name__)
 
 # Initialize managers
-event_calendar = EventCalendar()
 task_manager = TaskManager()
+event_calendar = EventCalendar(task_manager)
 game_manager = GamificationManager()
 mini_game = MiniGame()
 system_monitor = SystemMonitor()
@@ -101,6 +101,28 @@ def calendar():
     return render_template("calendar.html", **context)
 
 
+@main_bp.route("/calendar/add-task", methods=["POST"])
+def add_calendar_task():
+    """Add a task from the calendar modal."""
+    date_str = request.form.get("date")
+    title = request.form.get("title")
+    description = request.form.get("description", "")
+    priority = request.form.get("priority", "medium")
+
+    if not title or not date_str:
+        return redirect(url_for("main.calendar"))
+
+    # Add the task with due date
+    task_manager.add_task(title, description, priority, due_date=date_str)
+
+    # Award points for adding a task
+    user_id = _get_user_id()
+    game_manager.add_points(user_id, 5)
+    game_manager.add_badge(user_id, "task_creator")
+
+    return redirect(url_for("main.calendar"))
+
+
 @main_bp.route("/tasks", methods=["GET", "POST"])
 def tasks():
     """Display and manage tasks."""
@@ -127,10 +149,10 @@ def toggle_task(task_id):
     """Toggle task completion status."""
     user_id = _get_user_id()
     task = task_manager.get_task(task_id)
-    if task and not task["completed"]:
+    if task and not task.completed:
         game_manager.increment_task_count(user_id)
     if task:
-        task_manager.update_task(task_id, completed=not task["completed"])
+        task_manager.update_task(task_id, completed=not task.completed)
 
     return redirect(url_for("main.tasks"))
 

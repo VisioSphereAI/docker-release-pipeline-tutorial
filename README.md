@@ -61,8 +61,8 @@ docker compose up --build
 
 ### 🏠 Web Pages
 - **Home** - Overview of features and quick links
-- **📅 Calendar** - Interactive monthly event calendar
-- **✓ Tasks** - Task management with priorities and completion tracking
+- **📅 Calendar** - Interactive monthly event calendar with task addition
+- **✓ Tasks** - Task management with priorities, due dates, and completion tracking
 - **🎮 Arcade** - Interactive games (riddles, math challenges, color matching)
 - **👤 Profile** - User profile with gamification stats
 - **🏆 Leaderboard** - Competitive ranking system
@@ -88,6 +88,7 @@ docker compose up --build
 - **Form Handling** - Task creation and management
 - **Static Assets** - CSS and JavaScript support
 - **Responsive Design** - Mobile-friendly UI with Bootstrap 5
+- **📅 Calendar Task Addition** - Click dates to add tasks with due dates
 - **🎮 Gamification System** - Points, levels, badges, achievements, leaderboards
 - **🌙 Dark Mode Toggle** - Persistent user theme preference
 - **🎭 Easter Eggs** - Interactive hidden features (Konami code, etc.)
