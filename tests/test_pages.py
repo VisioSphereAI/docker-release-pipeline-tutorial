@@ -17,10 +17,19 @@ def test_calendar_page():
     app = create_app("app.config.TestingConfig")
     client = app.test_client()
 
+    # First add a task with a due date
+    client.post("/calendar/add-task", data={
+        "date": "2026-04-15",
+        "title": "Calendar Task",
+        "description": "Task added from calendar",
+        "priority": "medium",
+    })
+
+    # Then check if calendar shows it
     response = client.get("/calendar")
 
     assert response.status_code == 200
-    assert b"Event Calendar" in response.data
+    assert b"Calendar Task" in response.data
 
 
 def test_tasks_page():
@@ -33,18 +42,19 @@ def test_tasks_page():
     assert b"Task Manager" in response.data
 
 
-def test_add_task():
+def test_add_task_from_calendar():
     app = create_app("app.config.TestingConfig")
     client = app.test_client()
 
-    response = client.post("/tasks", data={
-        "title": "Test Task",
-        "description": "A test task",
-        "priority": "high",
+    response = client.post("/calendar/add-task", data={
+        "date": "2026-04-15",
+        "title": "Calendar Task",
+        "description": "Task added from calendar",
+        "priority": "medium",
     }, follow_redirects=True)
 
     assert response.status_code == 200
-    assert b"Test Task" in response.data
+    assert b"Calendar Task" in response.data
 
 
 def test_about_page():
