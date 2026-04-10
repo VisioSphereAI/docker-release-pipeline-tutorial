@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title }} | Flask Docker Sample</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1>Flask Docker Sample</h1>
+        <nav>
+          <a href="{{ url_for('main.home') }}">Home</a>
+          <a href="{{ url_for('main.about') }}">About</a>
+          <a href="{{ url_for('main.contact') }}">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="card">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; {{ current_year }} Flask Docker Sample. Built with Python + Flask.</p>
+    </footer>
+  </body>
+</html>

@@ -74,16 +74,24 @@ Triggered when:
 .
 ├── .github/
 │   └── workflows/
-│       └── pipeline.yml
+│       └── ci.yml
 ├── app/
-│   └── (application code)
-├── docker/
-│   └── Dockerfile
+│   ├── __init__.py
+│   └── routes.py
+├── docs/
+│   ├── api.md
+│   ├── overview.md
+│   └── setup.md
 ├── scripts/
-│   ├── build.sh
-│   ├── validate.sh
-│   ├── promote.sh
+│   ├── run.sh
+│   └── test.sh
+├── tests/
+│   └── test_basic.py
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
 ├── README.md
+└── .dockerignore
 ```
 
 ---
@@ -161,74 +169,110 @@ Add in GitHub Secrets:
 
 ## 📦 Sample Workflow (Simplified)
 
-```yaml
-name: CI/CD Pipeline
+This repository includes a GitHub Actions workflow in `.github/workflows/ci.yml` that:
 
-on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: "Environment"
-        required: true
-      tag:
-        description: "Release Tag"
-        required: false
+- checks out the code
+- installs Python dependencies
+- runs unit tests with `pytest`
+- builds the Docker image
 
-jobs:
-  pipeline:
-    runs-on: ubuntu-latest
+---
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+## 🐳 Docker Compose
 
-      - name: Set Variables
-        run: |
-          echo "ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-          echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+A `docker-compose.yml` file is provided for local development:
 
-      - name: Dev Flow
-        if: env.ENV == 'dev'
-        run: |
-          ./scripts/build.sh
-
-      - name: Validate for Prod
-        if: env.ENV == 'prod'
-        run: |
-          ./scripts/validate.sh $TAG
-
-      - name: Promote to Prod
-        if: env.ENV == 'prod'
-        run: |
-          ./scripts/promote.sh $TAG
+```bash
+docker compose up --build
 ```
 
 ---
 
-## 🧠 Key Concepts Used
+## 📚 Documentation
 
-- Git branching strategy
-- CI/CD pipelines
-- Docker image lifecycle
-- Release management
-- Environment promotion
+Additional documentation is available in the `docs/` folder:
+
+- `docs/overview.md` — project overview and structure
+- `docs/setup.md` — development, Docker, and test setup
+- `docs/api.md` — endpoint documentation
 
 ---
 
-## 📈 Future Enhancements
+## 🧪 Local Flask Sample Application
 
-- Kubernetes deployment (Helm)
-- Canary deployments
-- Automated rollback
-- OpenTelemetry tracing
+A simple Flask sample application is available under `app/`.
+
+This version includes a multi-page site with HTML templates and CSS assets.
+
+Run locally:
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+set FLASK_APP=app
+flask run
+```
+
+Visit:
+- `http://127.0.0.1:5000/`
+- `http://127.0.0.1:5000/about`
+- `http://127.0.0.1:5000/contact`
+
+Build and run with Docker:
+```bash
+docker build -t flask-sample-app .
+docker run -p 5000:5000 flask-sample-app
+```
+
+Run with Docker Compose:
+```bash
+docker compose up --build
+```
+
+Run tests:
+```bash
+pip install pytest
+pytest
+```
+
+---
+
+## 🗂️ Current Repository Structure
+
+```
+.
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── app/
+│   ├── __init__.py
+│   └── routes.py
+├── docs/
+│   ├── api.md
+│   ├── overview.md
+│   └── setup.md
+├── scripts/
+│   ├── run.sh
+│   └── test.sh
+├── tests/
+│   └── test_basic.py
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── README.md
+├── .dockerignore
+└── .gitignore
+```
 
 ---
 
 ## 🤝 Contribution
 
-1. Fork repo
-2. Create feature branch
-3. Submit PR
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
 
 ---
 
