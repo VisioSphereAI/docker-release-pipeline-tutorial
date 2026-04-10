@@ -1,0 +1,120 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-10 mx-auto">
+    <h1 class="mb-4">✓ Task Manager</h1>
+
+    <!-- Task Stats -->
+    {% if stats %}
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h5 class="card-title">Total Tasks</h5>
+            <h2 class="text-primary">{{ stats.total }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h5 class="card-title">Completed</h5>
+            <h2 class="text-success">{{ stats.completed }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h5 class="card-title">Pending</h5>
+            <h2 class="text-warning">{{ stats.pending }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h5 class="card-title">Completion</h5>
+            <h2 class="text-info">{{ stats.completion_rate }}%</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Add New Task Form -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Add New Task</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('main.tasks') }}">
+          <div class="mb-3">
+            <label for="title" class="form-label">Task Title</label>
+            <input type="text" class="form-control" id="title" name="title" required />
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="priority" class="form-label">Priority</label>
+            <select class="form-select" id="priority" name="priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Task</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tasks List -->
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Tasks</h5>
+      </div>
+      <div class="card-body">
+        {% if tasks %}
+        <div class="list-group">
+          {% for task in tasks %}
+          <div class="list-group-item {% if task.completed %}opacity-50{% endif %}">
+            <div class="row align-items-start">
+              <div class="col-sm-8">
+                <div class="d-flex align-items-center gap-2">
+                  <form method="POST" action="{{ url_for('main.toggle_task', task_id=task.id) }}" class="m-0">
+                    <input type="hidden" name="_method" value="POST" />
+                    <button type="submit" class="btn btn-sm {% if task.completed %}btn-success{% else %}btn-outline-success{% endif %}">
+                      {% if task.completed %}✓{% else %}☐{% endif %}
+                    </button>
+                  </form>
+                  <div>
+                    <h6 class="mb-1 {% if task.completed %}text-decoration-line-through{% endif %}">{{ task.title }}</h6>
+                    {% if task.description %}
+                    <p class="text-muted small mb-0">{{ task.description }}</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-4 d-flex justify-content-end align-items-center gap-2">
+                <span class="badge bg-{% if task.priority == 'high' %}danger{% elif task.priority == 'medium' %}warning{% else %}info{% endif %}">
+                  {{ task.priority.capitalize() }}
+                </span>
+                <form method="POST" action="{{ url_for('main.delete_task', task_id=task.id) }}" style="display: inline;">
+                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this task?');">Delete</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No tasks yet. Create one to get started!</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

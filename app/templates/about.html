@@ -1,12 +1,65 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-  <h2>About this project</h2>
-  <p>This Flask app is designed to show a clean, extensible structure for Docker-based development.</p>
-  <ul>
-    <li>Multi-page HTML support with Jinja2 templates</li>
-    <li>Static CSS assets served from <code>/static/</code></li>
-    <li>Modular app factory and blueprint structure</li>
-    <li>Health and API endpoints for automation</li>
-  </ul>
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <h1 class="mb-4">About This Project 📚</h1>
+
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">🎯 Project Overview</h5>
+      </div>
+      <div class="card-body">
+        <p>This is an advanced Flask application demonstrating production-grade development practices with Docker containerization.</p>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0">⚙️ Technologies Used</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><strong>Python 3.12</strong> - Core application language</li>
+          <li class="list-group-item"><strong>Flask</strong> - Web framework with blueprints and factory pattern</li>
+          <li class="list-group-item"><strong>Jinja2</strong> - Template engine for multi-page support</li>
+          <li class="list-group-item"><strong>Bootstrap 5</strong> - Responsive UI framework</li>
+          <li class="list-group-item"><strong>Docker & Docker Compose</strong> - Containerization</li>
+          <li class="list-group-item"><strong>GitHub Actions</strong> - CI/CD pipeline</li>
+          <li class="list-group-item"><strong>Gunicorn</strong> - Production WSGI server</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">📋 Feature List</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Application Features</h6>
+            <ul>
+              <li>Multi-page HTML templates</li>
+              <li>Interactive calendar system</li>
+              <li>Task management system</li>
+              <li>Static CSS/JS assets</li>
+              <li>Responsive design</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h6>Development Features</h6>
+            <ul>
+              <li>App factory pattern</li>
+              <li>Blueprint-based routing</li>
+              <li>Error handling</li>
+              <li>Environment configuration</li>
+              <li>Unit tests with pytest</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

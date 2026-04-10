@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-10 mx-auto">
+    <h1 class="mb-5 text-center">🎮 Game Arcade</h1>
+
+    <div class="row g-4">
+      <!-- Riddle Game -->
+      <div class="col-md-6">
+        <div class="card h-100 shadow-lg game-card">
+          <div class="card-body text-center">
+            <div class="display-4 mb-3">🧩</div>
+            <h5 class="card-title">Riddle Master</h5>
+            <p class="card-text">Solve mind-bending riddles and earn points!</p>
+            <p class="text-muted small">+25 points per riddle</p>
+            <a href="{{ url_for('main.riddle_game') }}" class="btn btn-primary btn-lg">Play</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Math Game -->
+      <div class="col-md-6">
+        <div class="card h-100 shadow-lg game-card">
+          <div class="card-body text-center">
+            <div class="display-4 mb-3">🧮</div>
+            <h5 class="card-title">Math Challenge</h5>
+            <p class="card-text">Quick math problems under pressure!</p>
+            <p class="text-muted small">+15 points per problem</p>
+            <a href="{{ url_for('main.math_game') }}" class="btn btn-primary btn-lg">Play</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coming Soon Section -->
+    <div class="row g-4 mt-2">
+      <div class="col-md-6">
+        <div class="card h-100 opacity-50">
+          <div class="card-body text-center">
+            <div class="display-4 mb-3">🎨</div>
+            <h5 class="card-title">Color Match</h5>
+            <p class="card-text">Coming Soon...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card h-100 opacity-50">
+          <div class="card-body text-center">
+            <div class="display-4 mb-3">🧠</div>
+            <h5 class="card-title">Memory Game</h5>
+            <p class="card-text">Coming Soon...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h5 class="card-title">Your Gaming Stats</h5>
+            <div class="row">
+              <div class="col-md-4">
+                <h6 class="text-muted">Total Points</h6>
+                <h3 class="text-success">{{ user.points }}</h3>
+              </div>
+              <div class="col-md-4">
+                <h6 class="text-muted">Current Level</h6>
+                <h3 class="text-info">{{ user.level }}</h3>
+              </div>
+              <div class="col-md-4">
+                <h6 class="text-muted">Badges</h6>
+                <h3 class="text-warning">{{ user.badges|length }}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .game-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .game-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+  }
+</style>
+{% endblock %}

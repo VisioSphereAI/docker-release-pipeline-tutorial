@@ -1,8 +1,71 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-  <h2>Welcome to the Flask multi-page site</h2>
-  <p>This sample app demonstrates a production-like structure with HTML templates, static CSS, and API endpoints.</p>
-  <p>Use the navigation above to explore the site or access the health endpoint at <code>/health/</code>.</p>
-  <p>Try the simple JSON API at <code>/api/v1/echo</code> to verify the backend.</p>
+<div class="row">
+  <div class="col-lg-10 mx-auto">
+    <div class="text-center mb-5">
+      <h1 class="display-4 text-white mb-3">Welcome to Flask Docker! 🐳</h1>
+      <p class="lead text-white">A production-grade Flask application with interactive features</p>
+    </div>
+
+    <!-- Feature Cards -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-6">
+        <div class="card h-100 shadow-lg">
+          <div class="card-body text-center">
+            <h3 class="card-title">📅 Calendar</h3>
+            <p class="card-text">Browse events and manage your schedule with an interactive monthly calendar.</p>
+            <a href="{{ url_for('main.calendar') }}" class="btn btn-primary">View Calendar</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card h-100 shadow-lg">
+          <div class="card-body text-center">
+            <h3 class="card-title">✓ Task Manager</h3>
+            <p class="card-text">Create, organize, and track your tasks with priority levels and completion status.</p>
+            <a href="{{ url_for('main.tasks') }}" class="btn btn-primary">Manage Tasks</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features List -->
+    <div class="card shadow-lg">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">🚀 Advanced Features</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">✓ Multi-page Flask application</li>
+              <li class="list-group-item">✓ Bootstrap 5 responsive design</li>
+              <li class="list-group-item">✓ Interactive calendar system</li>
+              <li class="list-group-item">✓ Task management with priorities</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">✓ Docker containerization</li>
+              <li class="list-group-item">✓ JSON API endpoints</li>
+              <li class="list-group-item">✓ Form handling & validation</li>
+              <li class="list-group-item">✓ Unit tests & CI/CD pipeline</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Information -->
+    <div class="alert alert-info mt-5">
+      <h5>📡 API Endpoints</h5>
+      <ul class="mb-0">
+        <li><code class="bg-light px-2 py-1">/api/v1/echo</code> - Echo JSON messages</li>
+        <li><code class="bg-light px-2 py-1">/health/</code> - Health check endpoint</li>
+      </ul>
+    </div>
+  </div>
+</div>
 {% endblock %}
