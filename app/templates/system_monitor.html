@@ -1,0 +1,1012 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-12">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="mb-0">💻 System Monitor & Performance</h1>
+      <div class="d-flex gap-2">
+        <button id="refreshBtn" class="btn btn-primary btn-sm" onclick="refreshData()">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="autoRefreshToggle" checked>
+          <label class="form-check-label" for="autoRefreshToggle">
+            Auto-refresh (2s)
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Indicator -->
+    <div class="alert alert-success d-flex align-items-center mb-4" id="statusIndicator">
+      <div class="spinner-border spinner-border-sm me-2" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <span id="statusText">Loading system data...</span>
+      <small class="text-muted ms-auto" id="lastUpdate">Never</small>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card text-center bg-primary text-white stat-card" data-metric="cpu">
+          <div class="card-body">
+            <div class="stat-icon">⚡</div>
+            <h6 class="card-title">CPU Usage</h6>
+            <h3 class="stat-value" id="cpuUsage">{{ "%.1f"|format(cpu_info.total_usage) }}%</h3>
+            <small id="cpuCores">{{ cpu_info.logical_cores }} cores</small>
+            <div class="stat-trend" id="cpuTrend"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center bg-info text-white stat-card" data-metric="memory">
+          <div class="card-body">
+            <div class="stat-icon">🧠</div>
+            <h6 class="card-title">Memory</h6>
+            <h3 class="stat-value" id="memoryUsage">{{ "%.1f"|format(memory_info.percent) }}%</h3>
+            <small id="memoryDetails">{{ format_bytes(memory_info.used) }} / {{ format_bytes(memory_info.total) }}</small>
+            <div class="stat-trend" id="memoryTrend"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center bg-warning text-dark stat-card" data-metric="uptime">
+          <div class="card-body">
+            <div class="stat-icon">⏱️</div>
+            <h6 class="card-title">Uptime</h6>
+            <h3 class="stat-value" id="uptime">{{ boot_time.uptime_formatted }}</h3>
+            <small>System Running</small>
+            <div class="stat-trend" id="uptimeTrend"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center stat-card" data-metric="battery" id="batteryCard">
+          <div class="card-body">
+            <div class="stat-icon">🔋</div>
+            <h6 class="card-title">Battery</h6>
+            {% if battery_info.has_battery %}
+              <h3 class="stat-value" id="batteryLevel">{{ battery_info.percent }}%</h3>
+              <small id="batteryStatus">{{ "Plugged" if battery_info.power_plugged else battery_info.time_left }}</small>
+            {% else %}
+              <h3 class="stat-value" id="batteryLevel">N/A</h3>
+              <small id="batteryStatus">No Battery Detected</small>
+            {% endif %}
+            <div class="stat-trend" id="batteryTrend"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="card mb-4 system-info-card">
+      <div class="card-header bg-dark text-white d-flex align-items-center">
+        <h5 class="mb-0 me-2">🖥️ System Information</h5>
+        <div class="spinner-border spinner-border-sm ms-auto d-none" id="systemSpinner"></div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>OS:</strong></td>
+                <td id="osInfo">{{ system_info.system }} {{ system_info.release }}</td>
+              </tr>
+              <tr>
+                <td><strong>Hostname:</strong></td>
+                <td id="hostname">{{ system_info.node_name }}</td>
+              </tr>
+              <tr>
+                <td><strong>Machine:</strong></td>
+                <td id="machine">{{ system_info.machine }}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Processor:</strong></td>
+                <td id="processor">{{ system_info.processor }}</td>
+              </tr>
+              <tr>
+                <td><strong>Python Version:</strong></td>
+                <td id="pythonVersion">{{ system_info.python_version }}</td>
+              </tr>
+              <tr>
+                <td><strong>Boot Time:</strong></td>
+                <td id="bootTime">{{ boot_time.boot_time }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CPU Details -->
+    <div class="card mb-4 cpu-card">
+      <div class="card-header bg-primary text-white d-flex align-items-center">
+        <h5 class="mb-0 me-2">📊 CPU Details</h5>
+        <div class="spinner-border spinner-border-sm ms-auto d-none" id="cpuSpinner"></div>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <h6>Overall CPU Usage</h6>
+            <div class="progress cpu-progress" style="height: 25px;">
+              <div class="progress-bar cpu-bar" id="cpuProgressBar" style="width: {{ cpu_info.total_usage }}%">
+                <span id="cpuProgressText">{{ "%.1f"|format(cpu_info.total_usage) }}%</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Physical Cores:</strong></td>
+                <td id="physicalCores">{{ cpu_info.physical_cores }}</td>
+              </tr>
+              <tr>
+                <td><strong>Logical Cores:</strong></td>
+                <td id="logicalCores">{{ cpu_info.logical_cores }}</td>
+              </tr>
+              <tr>
+                <td><strong>Max Frequency:</strong></td>
+                <td id="maxFreq">{{ "%.0f"|format(cpu_info.max_frequency) }} MHz</td>
+              </tr>
+              <tr>
+                <td><strong>Current Frequency:</strong></td>
+                <td id="currentFreq">{{ "%.0f"|format(cpu_info.current_frequency) }} MHz</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Per-Core Usage -->
+        <div class="mt-3" id="coreUsageContainer">
+          <h6>Per-Core CPU Usage</h6>
+          <div class="row" id="coreUsage">
+            {% if cpu_info.usage_per_core %}
+            {% for usage in cpu_info.usage_per_core %}
+            <div class="col-md-6 col-lg-3 mb-2">
+              <small>Core {{ loop.index0 }}</small>
+              <div class="progress core-progress" style="height: 20px;">
+                <div class="progress-bar bg-success core-bar" style="width: {{ usage }}%">
+                  <span class="core-text">{{ "%.0f"|format(usage) }}%</span>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Memory Details -->
+    <div class="card mb-4 memory-card">
+      <div class="card-header bg-info text-white d-flex align-items-center">
+        <h5 class="mb-0 me-2">🧠 Memory Details</h5>
+        <div class="spinner-border spinner-border-sm ms-auto d-none" id="memorySpinner"></div>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <h6>RAM Usage</h6>
+            <div class="progress memory-progress" style="height: 25px;">
+              <div class="progress-bar memory-bar" id="ramProgressBar" style="width: {{ memory_info.percent }}%">
+                <span id="ramProgressText">{{ "%.1f"|format(memory_info.percent) }}%</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Total RAM:</strong></td>
+                <td id="totalRam">{{ format_bytes(memory_info.total) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Used:</strong></td>
+                <td id="usedRam">{{ format_bytes(memory_info.used) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Available:</strong></td>
+                <td id="availableRam">{{ format_bytes(memory_info.available) }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Swap Memory</h6>
+            <div class="progress swap-progress" style="height: 25px;">
+              <div class="progress-bar bg-warning swap-bar" id="swapProgressBar" style="width: {{ memory_info.swap_percent }}%">
+                <span id="swapProgressText">{{ "%.1f"|format(memory_info.swap_percent) }}%</span>
+              </div>
+            </div>
+            <small class="text-muted" id="swapDetails">{{ format_bytes(memory_info.swap_used) }} / {{ format_bytes(memory_info.swap_total) }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Disk Info -->
+    <div class="card mb-4 disk-card">
+      <div class="card-header bg-warning text-dark d-flex align-items-center">
+        <h5 class="mb-0 me-2">💾 Disk Storage</h5>
+        <div class="spinner-border spinner-border-sm ms-auto d-none" id="diskSpinner"></div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive" id="diskTableContainer">
+          {% if disk_info and disk_info is not mapping %}
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Device</th>
+                <th>Mount Point</th>
+                <th>Type</th>
+                <th>Total</th>
+                <th>Used</th>
+                <th>Free</th>
+                <th>Usage %</th>
+              </tr>
+            </thead>
+            <tbody id="diskTableBody">
+              {% for disk in disk_info %}
+              <tr class="disk-row">
+                <td><code>{{ disk.device }}</code></td>
+                <td>{{ disk.mount_point }}</td>
+                <td>{{ disk.fstype }}</td>
+                <td>{{ format_bytes(disk.total) }}</td>
+                <td>{{ format_bytes(disk.used) }}</td>
+                <td>{{ format_bytes(disk.free) }}</td>
+                <td>
+                  <div class="progress disk-progress" style="height: 20px;">
+                    <div class="progress-bar disk-bar {% if disk.percent > 80 %}bg-danger{% elif disk.percent > 60 %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ disk.percent }}%">
+                      <span class="disk-text">{{ "%.1f"|format(disk.percent) }}%</span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Network Information -->
+    <div class="card mb-4 network-card">
+      <div class="card-header bg-success text-white d-flex align-items-center">
+        <h5 class="mb-0 me-2">🌐 Network Information</h5>
+        <div class="spinner-border spinner-border-sm ms-auto d-none" id="networkSpinner"></div>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3" id="networkStats">
+          {% if network_io and network_io is not mapping %}
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Bytes Sent:</strong></td>
+                <td id="bytesSent">{{ format_bytes(network_io.bytes_sent) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Bytes Received:</strong></td>
+                <td id="bytesReceived">{{ format_bytes(network_io.bytes_recv) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Packets Sent:</strong></td>
+                <td id="packetsSent">{{ "{:,}".format(network_io.packets_sent) }}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Packets Received:</strong></td>
+                <td id="packetsReceived">{{ "{:,}".format(network_io.packets_recv) }}</td>
+              </tr>
+              <tr>
+                <td><strong>Errors In:</strong></td>
+                <td id="errorsIn">{{ network_io.errin }}</td>
+              </tr>
+              <tr>
+                <td><strong>Errors Out:</strong></td>
+                <td id="errorsOut">{{ network_io.errout }}</td>
+              </tr>
+            </table>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Network Interfaces -->
+        <h6>Network Interfaces</h6>
+        <div class="row g-2" id="networkInterfaces">
+          {% if network_info and network_info is not mapping %}
+          {% for interface_name, interface_data in network_info.items() %}
+          <div class="col-md-6">
+            <div class="card bg-light interface-card">
+              <div class="card-body">
+                <h6 class="card-title"><code>{{ interface_name }}</code></h6>
+                {% if interface_data.stats %}
+                <small class="text-muted status-indicator">
+                  Status: <span class="status-dot {% if interface_data.stats.is_up %}online{% else %}offline{% endif %}"></span>
+                  {% if interface_data.stats.is_up %}🟢 Up{% else %}🔴 Down{% endif %} |
+                  Speed: {{ interface_data.stats.speed }} Mbps
+                </small>
+                {% endif %}
+                <ul class="list-unstyled small mt-2">
+                  {% for addr in interface_data.addresses %}
+                  <li><code>{{ addr.address }}</code></li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Battery Information -->
+    {% if battery_info.has_battery %}
+    <div class="card mb-4 battery-card">
+      <div class="card-header bg-success text-white d-flex align-items-center">
+        <h5 class="mb-0 me-2">🔋 Battery Information</h5>
+        <div class="spinner-border spinner-border-sm ms-auto d-none" id="batterySpinner"></div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Battery Level</h6>
+            <div class="progress battery-progress" style="height: 30px;">
+              <div class="progress-bar battery-bar {% if battery_info.percent > 50 %}bg-success{% elif battery_info.percent > 20 %}bg-warning{% else %}bg-danger{% endif %}" id="batteryProgressBar" style="width: {{ battery_info.percent }}%">
+                <span id="batteryProgressText">{{ battery_info.percent }}%</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td><strong>Status:</strong></td>
+                <td id="batteryPowerStatus">{% if battery_info.power_plugged %}🔌 Plugged In{% else %}🔋 On Battery{% endif %}</td>
+              </tr>
+              <tr>
+                <td><strong>Time Left:</strong></td>
+                <td id="batteryTimeLeft">{{ battery_info.time_left }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Processes -->
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card process-card">
+          <div class="card-header bg-danger text-white d-flex align-items-center">
+            <h5 class="mb-0 me-2">⚡ Top CPU Processes</h5>
+            <div class="spinner-border spinner-border-sm ms-auto d-none" id="cpuProcessSpinner"></div>
+          </div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm table-hover">
+              <thead>
+                <tr>
+                  <th>PID</th>
+                  <th>Name</th>
+                  <th>CPU %</th>
+                </tr>
+              </thead>
+              <tbody id="cpuProcessesTable">
+                {% for proc in processes.top_cpu %}
+                <tr class="process-row">
+                  <td>{{ proc.pid }}</td>
+                  <td><small>{{ proc.name }}</small></td>
+                  <td>
+                    <div class="progress process-progress" style="height: 15px;">
+                      <div class="progress-bar bg-danger process-bar" style="width: {{ proc.cpu_percent }}%">
+                        <span class="process-text">{{ "%.1f"|format(proc.cpu_percent) }}%</span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card process-card">
+          <div class="card-header bg-danger text-white d-flex align-items-center">
+            <h5 class="mb-0 me-2">🧠 Top Memory Processes</h5>
+            <div class="spinner-border spinner-border-sm ms-auto d-none" id="memoryProcessSpinner"></div>
+          </div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm table-hover">
+              <thead>
+                <tr>
+                  <th>PID</th>
+                  <th>Name</th>
+                  <th>Memory %</th>
+                </tr>
+              </thead>
+              <tbody id="memoryProcessesTable">
+                {% for proc in processes.top_memory %}
+                <tr class="process-row">
+                  <td>{{ proc.pid }}</td>
+                  <td><small>{{ proc.name }}</small></td>
+                  <td>
+                    <div class="progress process-progress" style="height: 15px;">
+                      <div class="progress-bar process-bar" style="width: {{ proc.memory_percent }}%; background-color: #6f42c1;">
+                        <span class="process-text">{{ "%.1f"|format(proc.memory_percent) }}%</span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Processes -->
+    <div class="alert alert-info mt-4 system-summary">
+      <h6>📈 System Summary</h6>
+      <p class="mb-0"><strong>Total Running Processes:</strong> <span id="totalProcesses">{{ processes.total_processes }}</span></p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Global variables
+let autoRefreshInterval = null;
+let lastData = {};
+let isRefreshing = false;
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Start auto-refresh
+    startAutoRefresh();
+
+    // Handle auto-refresh toggle
+    document.getElementById('autoRefreshToggle').addEventListener('change', function() {
+        if (this.checked) {
+            startAutoRefresh();
+        } else {
+            stopAutoRefresh();
+        }
+    });
+
+    // Initial data load
+    refreshData();
+});
+
+// Start auto-refresh
+function startAutoRefresh() {
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    autoRefreshInterval = setInterval(refreshData, 2000);
+}
+
+// Stop auto-refresh
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+// Refresh all data
+async function refreshData() {
+    if (isRefreshing) return;
+    isRefreshing = true;
+
+    try {
+        updateStatus('Refreshing...', 'warning');
+
+        // Fetch all data in parallel
+        const [cpuData, memoryData, diskData, batteryData, networkData] = await Promise.all([
+            fetch('/api/v1/system/cpu').then(r => r.json()),
+            fetch('/api/v1/system/memory').then(r => r.json()),
+            fetch('/api/v1/system/disk').then(r => r.json()),
+            fetch('/api/v1/system/battery').then(r => r.json()),
+            fetch('/api/v1/system/network').then(r => r.json())
+        ]);
+
+        // Update UI with new data
+        updateCPUData(cpuData.system.cpu_info);
+        updateMemoryData(memoryData.system.memory_info);
+        updateDiskData(diskData.system.disk_info);
+        updateBatteryData(batteryData.system.battery_info);
+        updateNetworkData(networkData.system);
+
+        updateStatus('System data updated', 'success');
+        updateLastUpdate();
+
+    } catch (error) {
+        console.error('Error refreshing data:', error);
+        updateStatus('Error updating data', 'danger');
+    } finally {
+        isRefreshing = false;
+    }
+}
+
+// Update status indicator
+function updateStatus(message, type) {
+    const statusIndicator = document.getElementById('statusIndicator');
+    const statusText = document.getElementById('statusText');
+
+    statusIndicator.className = `alert alert-${type} d-flex align-items-center`;
+    statusText.textContent = message;
+}
+
+// Update last update time
+function updateLastUpdate() {
+    const lastUpdate = document.getElementById('lastUpdate');
+    lastUpdate.textContent = new Date().toLocaleTimeString();
+}
+
+// Update CPU data with animations
+function updateCPUData(cpuInfo) {
+    animateValue('cpuUsage', parseFloat(cpuInfo.total_usage));
+    animateProgressBar('cpuProgressBar', cpuInfo.total_usage, 'cpuProgressText');
+    updateElement('cpuCores', `${cpuInfo.logical_cores} cores`);
+    updateElement('physicalCores', cpuInfo.physical_cores);
+    updateElement('logicalCores', cpuInfo.logical_cores);
+    updateElement('maxFreq', `${cpuInfo.max_frequency.toFixed(0)} MHz`);
+    updateElement('currentFreq', `${cpuInfo.current_frequency.toFixed(0)} MHz`);
+
+    // Update per-core usage
+    if (cpuInfo.usage_per_core) {
+        const coreContainer = document.getElementById('coreUsage');
+        coreContainer.innerHTML = cpuInfo.usage_per_core.map((usage, index) => `
+            <div class="col-md-6 col-lg-3 mb-2">
+                <small>Core ${index}</small>
+                <div class="progress core-progress" style="height: 20px;">
+                    <div class="progress-bar bg-success core-bar animate-pulse" style="width: ${usage}%">
+                        <span class="core-text">${usage.toFixed(0)}%</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    updateTrend('cpuTrend', cpuInfo.total_usage, lastData.cpu?.total_usage);
+}
+
+// Update memory data with animations
+function updateMemoryData(memoryInfo) {
+    animateValue('memoryUsage', parseFloat(memoryInfo.percent));
+    animateProgressBar('ramProgressBar', memoryInfo.percent, 'ramProgressText');
+    animateProgressBar('swapProgressBar', memoryInfo.swap_percent, 'swapProgressText');
+
+    updateElement('totalRam', formatBytes(memoryInfo.total));
+    updateElement('usedRam', formatBytes(memoryInfo.used));
+    updateElement('availableRam', formatBytes(memoryInfo.available));
+    updateElement('swapDetails', `${formatBytes(memoryInfo.swap_used)} / ${formatBytes(memoryInfo.swap_total)}`);
+
+    updateTrend('memoryTrend', memoryInfo.percent, lastData.memory?.percent);
+}
+
+// Update disk data
+function updateDiskData(diskInfo) {
+    if (!diskInfo || !Array.isArray(diskInfo)) return;
+
+    const tbody = document.getElementById('diskTableBody');
+    tbody.innerHTML = diskInfo.map(disk => `
+        <tr class="disk-row animate-fade-in">
+            <td><code>${disk.device}</code></td>
+            <td>${disk.mount_point}</td>
+            <td>${disk.fstype}</td>
+            <td>${formatBytes(disk.total)}</td>
+            <td>${formatBytes(disk.used)}</td>
+            <td>${formatBytes(disk.free)}</td>
+            <td>
+                <div class="progress disk-progress" style="height: 20px;">
+                    <div class="progress-bar disk-bar ${getDiskColorClass(disk.percent)} animate-width" style="width: ${disk.percent}%">
+                        <span class="disk-text">${disk.percent.toFixed(1)}%</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update battery data
+function updateBatteryData(batteryInfo) {
+    if (!batteryInfo.has_battery) return;
+
+    animateValue('batteryLevel', batteryInfo.percent);
+    animateProgressBar('batteryProgressBar', batteryInfo.percent, 'batteryProgressText');
+
+    updateElement('batteryStatus', batteryInfo.power_plugged ? '🔌 Plugged In' : batteryInfo.time_left);
+    updateElement('batteryPowerStatus', batteryInfo.power_plugged ? '🔌 Plugged In' : '🔋 On Battery');
+    updateElement('batteryTimeLeft', batteryInfo.time_left);
+
+    // Update card color based on battery level
+    const card = document.getElementById('batteryCard');
+    const bar = document.getElementById('batteryProgressBar');
+
+    card.className = `card text-center stat-card ${getBatteryCardClass(batteryInfo.percent)}`;
+    bar.className = `progress-bar battery-bar ${getBatteryBarClass(batteryInfo.percent)} animate-width`;
+
+    updateTrend('batteryTrend', batteryInfo.percent, lastData.battery?.percent);
+}
+
+// Update network data
+function updateNetworkData(networkData) {
+    const networkIo = networkData.network_io;
+    const networkInfo = networkData.network_info;
+
+    if (networkIo) {
+        updateElement('bytesSent', formatBytes(networkIo.bytes_sent));
+        updateElement('bytesReceived', formatBytes(networkIo.bytes_recv));
+        updateElement('packetsSent', networkIo.packets_sent.toLocaleString());
+        updateElement('packetsReceived', networkIo.packets_recv.toLocaleString());
+        updateElement('errorsIn', networkIo.errin);
+        updateElement('errorsOut', networkIo.errout);
+    }
+
+    if (networkInfo) {
+        const interfacesContainer = document.getElementById('networkInterfaces');
+        interfacesContainer.innerHTML = Object.entries(networkInfo).map(([name, data]) => `
+            <div class="col-md-6">
+                <div class="card bg-light interface-card animate-fade-in">
+                    <div class="card-body">
+                        <h6 class="card-title"><code>${name}</code></h6>
+                        ${data.stats ? `
+                        <small class="text-muted status-indicator">
+                            Status: <span class="status-dot ${data.stats.is_up ? 'online' : 'offline'}"></span>
+                            ${data.stats.is_up ? '🟢 Up' : '🔴 Down'} |
+                            Speed: ${data.stats.speed} Mbps
+                        </small>
+                        ` : ''}
+                        <ul class="list-unstyled small mt-2">
+                            ${data.addresses.map(addr => `<li><code>${addr.address}</code></li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+// Utility functions
+function animateValue(elementId, newValue) {
+    const element = document.getElementById(elementId);
+    const currentValue = parseFloat(element.textContent.replace('%', ''));
+
+    if (currentValue !== newValue) {
+        element.classList.add('animate-pulse');
+        element.textContent = typeof newValue === 'number' && newValue % 1 !== 0 ? newValue.toFixed(1) + '%' : newValue + '%';
+
+        setTimeout(() => element.classList.remove('animate-pulse'), 1000);
+    }
+}
+
+function animateProgressBar(barId, percentage, textId) {
+    const bar = document.getElementById(barId);
+    const text = document.getElementById(textId);
+
+    bar.classList.add('animate-width');
+    bar.style.width = `${percentage}%`;
+    text.textContent = `${parseFloat(percentage).toFixed(1)}%`;
+
+    setTimeout(() => bar.classList.remove('animate-width'), 1000);
+}
+
+function updateElement(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element && element.textContent !== value) {
+        element.classList.add('animate-fade');
+        element.textContent = value;
+        setTimeout(() => element.classList.remove('animate-fade'), 500);
+    }
+}
+
+function updateTrend(trendId, current, previous) {
+    const trendElement = document.getElementById(trendId);
+    if (previous === undefined || previous === current) {
+        trendElement.innerHTML = '';
+        return;
+    }
+
+    const isUp = current > previous;
+    const change = Math.abs(current - previous).toFixed(1);
+    trendElement.innerHTML = `<small class="trend-${isUp ? 'up' : 'down'}">${isUp ? '↗' : '↘'} ${change}%</small>`;
+}
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function getDiskColorClass(percent) {
+    if (percent > 80) return 'bg-danger';
+    if (percent > 60) return 'bg-warning';
+    return 'bg-success';
+}
+
+function getBatteryCardClass(percent) {
+    if (percent > 50) return 'bg-success text-white';
+    if (percent > 20) return 'bg-warning text-dark';
+    return 'bg-danger text-white';
+}
+
+function getBatteryBarClass(percent) {
+    if (percent > 50) return 'bg-success';
+    if (percent > 20) return 'bg-warning';
+    return 'bg-danger';
+}
+
+// Store last data for trend calculation
+function storeLastData(data) {
+    lastData = {
+        cpu: data.cpu_info,
+        memory: data.memory_info,
+        battery: data.battery_info
+    };
+}
+</script>
+
+<style>
+/* Dynamic animations and styles */
+.card {
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-rgb, 13, 110, 253));
+}
+
+.stat-card[data-metric="memory"] {
+    background: linear-gradient(135deg, var(--bs-info), var(--bs-info-rgb, 13, 202, 240));
+}
+
+.stat-card[data-metric="uptime"] {
+    background: linear-gradient(135deg, var(--bs-warning), var(--bs-warning-rgb, 255, 193, 7));
+}
+
+.stat-card[data-metric="battery"] {
+    background: linear-gradient(135deg, var(--bs-success), var(--bs-success-rgb, 25, 135, 84));
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.stat-value {
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.stat-trend {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 0.8rem;
+}
+
+.trend-up {
+    color: #28a745;
+}
+
+.trend-down {
+    color: #dc3545;
+}
+
+/* Progress bar animations */
+.progress {
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar {
+    transition: width 1s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.animate-width {
+    animation: widthChange 1s ease-in-out;
+}
+
+@keyframes widthChange {
+    0% { transform: scaleX(0); }
+    100% { transform: scaleX(1); }
+}
+
+/* Pulse animations */
+.animate-pulse {
+    animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Fade animations */
+.animate-fade {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Status indicators */
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+
+.status-dot.online {
+    background-color: #28a745;
+    animation: blink 2s infinite;
+}
+
+.status-dot.offline {
+    background-color: #dc3545;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.5; }
+}
+
+/* Loading spinners */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Table animations */
+.disk-row, .process-row, .interface-card {
+    transition: all 0.3s ease;
+}
+
+.disk-row:hover, .process-row:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    transform: scale(1.01);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Custom scrollbar */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Button animations */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+#refreshBtn {
+    position: relative;
+    overflow: hidden;
+}
+
+#refreshBtn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+#refreshBtn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Status indicator animations */
+.alert {
+    transition: all 0.3s ease;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    border-color: #c3e6cb;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    border-color: #ffeaa7;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    border-color: #f5c6cb;
+}
+</style>
+{% endblock %}

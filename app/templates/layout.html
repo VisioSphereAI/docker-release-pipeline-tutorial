@@ -34,6 +34,9 @@
               <a class="nav-link {% if title == 'Arcade' %}active{% endif %}" href="{{ url_for('main.games') }}">🎮 Games</a>
             </li>
             <li class="nav-item">
+              <a class="nav-link {% if 'System' in title %}active{% endif %}" href="{{ url_for('main.system_monitor_page') }}">💻 System</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link {% if title == 'Profile' %}active{% endif %}" href="{{ url_for('main.profile') }}">👤 Profile</a>
             </li>
             <li class="nav-item">

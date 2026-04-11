@@ -1,4 +1,17 @@
-from datetime import datetime
+from datetime import datetime, date
+
+
+class Task:
+    """Task object with due date support."""
+
+    def __init__(self, task_id, title, description="", priority="medium", due_date=None):
+        self.id = task_id
+        self.title = title
+        self.description = description
+        self.priority = priority
+        self.completed = False
+        self.created_at = datetime.utcnow().isoformat()
+        self.due_date = due_date  # date object or None
 
 
 class TaskManager:
@@ -8,19 +21,20 @@ class TaskManager:
         self.tasks = {}
         self.task_id_counter = 1
 
-    def add_task(self, title, description="", priority="medium"):
+    def add_task(self, title, description="", priority="medium", due_date=None):
         """Add a new task."""
         task_id = self.task_id_counter
         self.task_id_counter += 1
 
-        self.tasks[task_id] = {
-            "id": task_id,
-            "title": title,
-            "description": description,
-            "priority": priority,
-            "completed": False,
-            "created_at": datetime.utcnow().isoformat(),
-        }
+        # Parse due_date if it's a string
+        if isinstance(due_date, str):
+            try:
+                due_date = datetime.fromisoformat(due_date).date()
+            except ValueError:
+                due_date = None
+
+        task = Task(task_id, title, description, priority, due_date)
+        self.tasks[task_id] = task
 
         return task_id
 
@@ -34,7 +48,7 @@ class TaskManager:
 
         return sorted(
             self.tasks.values(),
-            key=lambda t: (t["completed"], priority_order.get(t["priority"], 3)),
+            key=lambda t: (t.completed, priority_order.get(t.priority, 3)),
         )
 
     def update_task(self, task_id, **kwargs):
@@ -42,10 +56,16 @@ class TaskManager:
         if task_id not in self.tasks:
             return False
 
-        allowed_fields = {"title", "description", "priority", "completed"}
+        task = self.tasks[task_id]
+        allowed_fields = {"title", "description", "priority", "completed", "due_date"}
         for field, value in kwargs.items():
             if field in allowed_fields:
-                self.tasks[task_id][field] = value
+                if field == "due_date" and isinstance(value, str):
+                    try:
+                        value = datetime.fromisoformat(value).date()
+                    except ValueError:
+                        value = None
+                setattr(task, field, value)
 
         return True
 
@@ -58,7 +78,7 @@ class TaskManager:
 
     def get_stats(self):
         """Get task statistics."""
-        completed = sum(1 for t in self.tasks.values() if t["completed"])
+        completed = sum(1 for t in self.tasks.values() if t.completed)
         total = len(self.tasks)
 
         return {

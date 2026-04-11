@@ -7,7 +7,11 @@ This repository contains an **advanced Flask application** demonstrating product
 - **🐳 Docker** containerization with Gunicorn
 - **📅 Interactive Calendar** system
 - **✓ Task Manager** with priority levels
-- **🎨 Bootstrap 5** responsive UI
+- **� Gamification** with points, badges, and leaderboards
+- **🎯 Mini-games** - Riddle solver and Math challenges
+- **💻 System Monitor** - Real-time Windows/Linux performance tracking
+- **🌙 Dark Mode** - User-preferred theme support
+- **🎨 Bootstrap 5** responsive UI with animations
 - **🧪 Comprehensive Tests** with pytest
 - **🔄 CI/CD Pipeline** with GitHub Actions
 - **📊 Multi-page Application** with Jinja2 templates
@@ -57,14 +61,24 @@ docker compose up --build
 
 ### 🏠 Web Pages
 - **Home** - Overview of features and quick links
-- **📅 Calendar** - Interactive monthly event calendar
-- **✓ Tasks** - Task management with priorities and completion tracking
+- **📅 Calendar** - Interactive monthly event calendar with task addition
+- **✓ Tasks** - Task management with priorities, due dates, and completion tracking
+- **🎮 Arcade** - Interactive games (riddles, math challenges, color matching)
+- **👤 Profile** - User profile with gamification stats
+- **🏆 Leaderboard** - Competitive ranking system
+- **💻 System Monitor** - Real-time system performance dashboard
 - **About** - Project information and technologies
 - **Contact** - Next steps and suggestions
 
 ### 🔌 API Endpoints
 - `GET /health/` - Health check endpoint
 - `POST /api/v1/echo` - Echo JSON messages
+- `GET /api/v1/system/info` - Complete system information (JSON)
+- `GET /api/v1/system/cpu` - CPU metrics and core usage
+- `GET /api/v1/system/memory` - RAM and swap memory details
+- `GET /api/v1/system/disk` - Disk partitions and usage
+- `GET /api/v1/system/battery` - Battery status and health
+- `GET /api/v1/system/network` - Network interfaces and I/O statistics
 
 ### 🛠️ Advanced Features
 - **App Factory Pattern** - Flexible application initialization
@@ -74,6 +88,12 @@ docker compose up --build
 - **Form Handling** - Task creation and management
 - **Static Assets** - CSS and JavaScript support
 - **Responsive Design** - Mobile-friendly UI with Bootstrap 5
+- **📅 Calendar Task Addition** - Click dates to add tasks with due dates
+- **🎮 Gamification System** - Points, levels, badges, achievements, leaderboards
+- **🌙 Dark Mode Toggle** - Persistent user theme preference
+- **🎭 Easter Eggs** - Interactive hidden features (Konami code, etc.)
+- **💻 System Monitoring** - CPU, memory, disk, network, battery, and process tracking
+- **📊 Performance Metrics** - Top processes by CPU and memory usage
 
 ---
 
@@ -85,29 +105,40 @@ docker compose up --build
 │   └── workflows/
 │       └── ci.yml                 # GitHub Actions CI/CD
 ├── app/
-│   ├── __init__.py               # App factory
+│   ├── __init__.py               # App factory with Jinja2 filters
 │   ├── config.py                 # Configuration classes
-│   ├── routes.py                 # Blueprint routes
+│   ├── routes.py                 # Blueprint routes (40+ endpoints)
 │   ├── errors.py                 # Error handlers
 │   ├── extensions.py             # Flask extensions
 │   ├── health.py                 # Health check blueprint
 │   ├── calendar_manager.py       # Calendar logic
 │   ├── task_manager.py           # Task management logic
+│   ├── gamification.py           # Gamification system (points/badges/leaderboard)
+│   ├── minigames.py              # Mini-games (riddles, math)
+│   ├── system_monitor.py         # System monitoring (CPU/memory/disk/network/battery)
 │   ├── static/
 │   │   ├── css/
-│   │   │   └── styles.css        # Custom styles
+│   │   │   └── styles.css        # Custom styles with dark mode
 │   │   └── js/
-│   │       └── app.js            # Frontend JavaScript
+│   │       └── app.js            # Frontend JS (dark mode, easter eggs)
 │   └── templates/
-│       ├── layout.html           # Base template
+│       ├── layout.html           # Base template with navbar
 │       ├── home.html             # Home page
 │       ├── calendar.html         # Calendar page
 │       ├── tasks.html            # Tasks page
+│       ├── profile.html          # User profile page
+│       ├── leaderboard.html      # Leaderboard page
+│       ├── games.html            # Games menu page
+│       ├── riddle_game.html      # Riddle game page
+│       ├── math_game.html        # Math game page
+│       ├── system_monitor.html   # System monitor dashboard
 │       ├── about.html            # About page
 │       └── contact.html          # Contact page
 ├── tests/
-│   ├── test_api.py              # API tests
-│   └── test_pages.py            # Page tests
+│   ├── conftest.py              # Pytest configuration
+│   ├── test_api.py              # API endpoint tests
+│   ├── test_pages.py            # Page rendering tests
+│   └── test_system.py           # System monitoring tests
 ├── docs/
 │   ├── api.md                   # API documentation
 │   ├── overview.md              # Project overview

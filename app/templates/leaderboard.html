@@ -17,7 +17,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for rank, player in leaderboard|list %}
+          {% for player in leaderboard %}
           <tr class="{% if player.id == user_id %}table-success fw-bold{% endif %}">
             <td>
               {% if loop.index == 1 %}

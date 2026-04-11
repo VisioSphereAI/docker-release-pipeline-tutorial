@@ -30,12 +30,18 @@
           {% for week in calendar_data %}
           <tr>
             {% for day_obj in week %}
-            <td class="calendar-day {% if day_obj.day is none %}empty{% elif day_obj.is_today %}today{% endif %}">
+            <td class="calendar-day {% if day_obj.day is none %}empty{% elif day_obj.is_today %}today{% endif %} {% if day_obj.tasks %}has-tasks{% endif %}"
+                {% if day_obj.day is not none %}onclick="openTaskModal('{{ day_obj.date }}', '{{ day_obj.day }} {{ month_name }}')" style="cursor: pointer;"{% endif %}>
               {% if day_obj.day is not none %}
               <div class="day-number">{{ day_obj.day }}</div>
               <div class="events">
                 {% for event in day_obj.events %}
                 <span class="badge bg-info event-badge">{{ event }}</span>
+                {% endfor %}
+              </div>
+              <div class="tasks">
+                {% for task in day_obj.tasks %}
+                <span class="badge bg-{{ 'success' if task.priority == 'low' else 'warning' if task.priority == 'medium' else 'danger' }} task-badge">{{ task.title[:15] }}{% if task.title|length > 15 %}...{% endif %}</span>
                 {% endfor %}
               </div>
               {% endif %}
@@ -47,15 +53,107 @@
       </table>
     </div>
 
-    <!-- Sample Events Info -->
-    <div class="alert alert-info mt-4">
-      <h5>Sample Events</h5>
-      <ul class="mb-0">
-        <li><strong>April 11:</strong> Team Meeting</li>
-        <li><strong>April 12:</strong> Project Deadline</li>
-        <li><strong>April 15:</strong> Conference</li>
-      </ul>
+    <!-- Legend -->
+    <div class="alert alert-light mt-3">
+      <h6>Legend:</h6>
+      <span class="badge bg-info me-2">Events</span>
+      <span class="badge bg-success me-2">Low Priority Tasks</span>
+      <span class="badge bg-warning me-2">Medium Priority Tasks</span>
+      <span class="badge bg-danger me-2">High Priority Tasks</span>
+      <small class="text-muted">Click on any date to add a new task</small>
     </div>
   </div>
 </div>
+
+<!-- Task Addition Modal -->
+<div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="taskModalLabel">Add Task for <span id="selectedDate"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="taskForm" method="POST" action="{{ url_for('main.add_calendar_task') }}">
+        <div class="modal-body">
+          <input type="hidden" name="date" id="taskDate">
+          <div class="mb-3">
+            <label for="taskTitle" class="form-label">Task Title *</label>
+            <input type="text" class="form-control" id="taskTitle" name="title" required maxlength="100">
+          </div>
+          <div class="mb-3">
+            <label for="taskDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="taskDescription" name="description" rows="3" maxlength="500"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="taskPriority" class="form-label">Priority</label>
+            <select class="form-select" id="taskPriority" name="priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openTaskModal(date, displayDate) {
+  document.getElementById('taskDate').value = date;
+  document.getElementById('selectedDate').textContent = displayDate;
+  document.getElementById('taskTitle').value = '';
+  document.getElementById('taskDescription').value = '';
+  document.getElementById('taskPriority').value = 'medium';
+
+  const modal = new bootstrap.Modal(document.getElementById('taskModal'));
+  modal.show();
+}
+</script>
+
+<style>
+.calendar-day {
+  height: 120px;
+  vertical-align: top;
+  transition: background-color 0.2s;
+}
+
+.calendar-day:hover {
+  background-color: rgba(0, 123, 255, 0.1) !important;
+}
+
+.calendar-day.today {
+  background-color: rgba(255, 193, 7, 0.2) !important;
+  border: 2px solid #ffc107 !important;
+}
+
+.calendar-day.has-tasks {
+  background-color: rgba(40, 167, 69, 0.1) !important;
+}
+
+.day-number {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.events, .tasks {
+  font-size: 0.75rem;
+}
+
+.event-badge, .task-badge {
+  display: block;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-badge {
+  font-size: 0.7rem;
+}
+</style>
 {% endblock %}

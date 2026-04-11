@@ -7,14 +7,16 @@ from .calendar_manager import EventCalendar
 from .task_manager import TaskManager
 from .gamification import GamificationManager
 from .minigames import MiniGame
+from .system_monitor import SystemMonitor
 
 main_bp = Blueprint("main", __name__)
 
 # Initialize managers
-event_calendar = EventCalendar()
 task_manager = TaskManager()
+event_calendar = EventCalendar(task_manager)
 game_manager = GamificationManager()
 mini_game = MiniGame()
+system_monitor = SystemMonitor()
 
 # Pre-populate sample events and tasks
 event_calendar.add_event("2026-04-11", "Team Meeting")
@@ -99,6 +101,28 @@ def calendar():
     return render_template("calendar.html", **context)
 
 
+@main_bp.route("/calendar/add-task", methods=["POST"])
+def add_calendar_task():
+    """Add a task from the calendar modal."""
+    date_str = request.form.get("date")
+    title = request.form.get("title")
+    description = request.form.get("description", "")
+    priority = request.form.get("priority", "medium")
+
+    if not title or not date_str:
+        return redirect(url_for("main.calendar"))
+
+    # Add the task with due date
+    task_manager.add_task(title, description, priority, due_date=date_str)
+
+    # Award points for adding a task
+    user_id = _get_user_id()
+    game_manager.add_points(user_id, 5)
+    game_manager.add_badge(user_id, "task_creator")
+
+    return redirect(url_for("main.calendar"))
+
+
 @main_bp.route("/tasks", methods=["GET", "POST"])
 def tasks():
     """Display and manage tasks."""
@@ -125,10 +149,10 @@ def toggle_task(task_id):
     """Toggle task completion status."""
     user_id = _get_user_id()
     task = task_manager.get_task(task_id)
-    if task and not task["completed"]:
+    if task and not task.completed:
         game_manager.increment_task_count(user_id)
     if task:
-        task_manager.update_task(task_id, completed=not task["completed"])
+        task_manager.update_task(task_id, completed=not task.completed)
 
     return redirect(url_for("main.tasks"))
 
@@ -242,3 +266,61 @@ def math_game():
     context["math"] = mini_game.quick_math()
 
     return render_template("math_game.html", **context)
+
+
+@main_bp.route("/system", methods=["GET"])
+def system_monitor_page():
+    """Display system performance monitoring."""
+    context = _template_context()
+    context["title"] = "System Monitor"
+    
+    system_info = system_monitor.get_all_info()
+    context["system_info"] = system_info["system"]
+    context["cpu_info"] = system_info["cpu"]
+    context["memory_info"] = system_info["memory"]
+    context["disk_info"] = system_info["disk"]
+    context["network_info"] = system_info["network"]
+    context["network_io"] = system_info["network_io"]
+    context["battery_info"] = system_info["battery"]
+    context["boot_time"] = system_info["boot_time"]
+    context["processes"] = system_info["processes"]
+    context["format_bytes"] = system_monitor.format_bytes
+    
+    return render_template("system_monitor.html", **context)
+
+
+@main_bp.route("/api/v1/system/info", methods=["GET"])
+def api_system_info():
+    """API endpoint for system information."""
+    return jsonify(system_monitor.get_all_info())
+
+
+@main_bp.route("/api/v1/system/cpu", methods=["GET"])
+def api_cpu_info():
+    """API endpoint for CPU information."""
+    return jsonify(system_monitor.get_cpu_info())
+
+
+@main_bp.route("/api/v1/system/memory", methods=["GET"])
+def api_memory_info():
+    """API endpoint for memory information."""
+    return jsonify(system_monitor.get_memory_info())
+
+
+@main_bp.route("/api/v1/system/disk", methods=["GET"])
+def api_disk_info():
+    """API endpoint for disk information."""
+    return jsonify(system_monitor.get_disk_info())
+
+
+@main_bp.route("/api/v1/system/battery", methods=["GET"])
+def api_battery_info():
+    """API endpoint for battery information."""
+    return jsonify(system_monitor.get_battery_info())
+
+
+@main_bp.route("/api/v1/system/network", methods=["GET"])
+def api_network_info():
+    """API endpoint for network information."""
+    network_data = system_monitor.get_network_info()
+    return jsonify(network_data)
